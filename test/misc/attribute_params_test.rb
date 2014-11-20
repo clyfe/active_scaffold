@@ -175,6 +175,7 @@ class AttributeParamsTest < MiniTest::Test
     model = update_record_from_params(building, :create, :name, :floors, :name => 'First', :floors => floors)
     assert_equal 'First', model.name
     assert_equal 1, model.floors.size
+    model.floors.first.valid? # run validations
     assert model.floors.first.errors.present?
     refute model.floors.first.persisted?
   end
@@ -187,8 +188,8 @@ class AttributeParamsTest < MiniTest::Test
     model = update_record_from_params(Building.new, :create, :name, :floors, :name => 'First', :floors => floors)
     assert_equal 'First', model.name
     assert_equal 3, model.floors.size
-    assert_equal floor.id, model.floors.first.id
-    assert_equal [nil, *people.map(&:id)], model.floors.map(&:tenant_id)
+    assert_equal floor.id, model.floors.last.id
+    assert_equal [*people.map(&:id), nil], model.floors.map(&:tenant_id)
     assert model.save
     assert_equal [1, 1], people.map(&:reload).map(&:floors_count)
 
