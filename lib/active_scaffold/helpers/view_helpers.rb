@@ -17,6 +17,71 @@ module ActiveScaffold
       include ActiveScaffold::Helpers::HumanConditionHelpers
       include ActiveScaffold::Helpers::FilterHelpers
 
+      def active_scaffold_assets
+        active_scaffold_stylesheets + active_scaffold_javascripts
+      end
+
+      def active_scaffold_stylesheets(deps: true)
+        css = []
+        if deps
+          if Object.const_defined?(:Jquery)
+            if Jquery.const_defined?(:Rails) && Jquery::Rails.const_defined?(:JQUERY_UI_VERSION)
+              css << 'jquery-ui'
+            elsif Jquery.const_defined? :Ui
+              css << if Jquery::Ui::Rails::VERSION < '5.0.0'
+                       'jquery.ui.datepicker'
+                     else
+                       'jquery-ui/datepicker'
+                     end
+            end
+          end
+          css << 'jquery-ui-theme' if ActiveScaffold.jquery_ui_included?
+        end
+
+        css.concat ActiveScaffold.stylesheets
+        css.concat ActiveScaffold::Bridges.all_stylesheets
+
+        stylesheet_link_tag(*css)
+      end
+
+      def active_scaffold_javascripts(deps: true)
+        js = []
+        if deps
+          js << 'jquery.ba-throttle-debounce'
+          if Object.const_defined?(:Jquery)
+            if Jquery.const_defined?(:Rails) && Jquery::Rails.const_defined?(:JQUERY_UI_VERSION)
+              js << 'jquery-ui'
+            elsif Jquery.const_defined? :Ui
+              jquery_ui_prefix = Jquery::Ui::Rails::VERSION < '5.0.0' ? 'jquery.ui.' : 'jquery-ui/'
+              jquery_ui_widgets_prefix = Jquery::Ui::Rails::VERSION >= '6.0.0' ? 'widgets/' : ''
+              js << "#{jquery_ui_prefix}core" unless Jquery::Ui::Rails::VERSION >= '8.0.0'
+              js << "#{jquery_ui_prefix}effect"
+              js << "#{jquery_ui_prefix}effects/effect-highlight" if Jquery::Ui::Rails::VERSION >= '6.0.0'
+              js << "#{jquery_ui_prefix}#{jquery_ui_widgets_prefix}sortable"
+              js << "#{jquery_ui_prefix}#{jquery_ui_widgets_prefix}draggable"
+              js << "#{jquery_ui_prefix}#{jquery_ui_widgets_prefix}droppable"
+              js << "#{jquery_ui_prefix}#{jquery_ui_widgets_prefix}datepicker"
+            end
+          end
+          if ActiveScaffold.jquery_ui_included?
+            js << 'jquery-ui-timepicker-addon'
+            js << 'jquery/date_picker_bridge'
+            js << 'jquery/draggable_lists'
+          end
+          js << 'jquery.visible.min'
+          js << 'jquery/active_scaffold'
+          js << 'jquery/jquery.editinplace'
+        end
+
+        js.concat ActiveScaffold.javascripts
+        js.concat ActiveScaffold::Bridges.all_javascripts
+
+        # Inject config
+        config_js = "ActiveScaffold.config = #{ActiveScaffold.js_config.to_json};"
+
+        javascript_include_tag(*js) + javascript_tag(config_js)
+      end
+
       ##
       ## Delegates
       ##

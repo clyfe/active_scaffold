@@ -23,7 +23,6 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = '>= 3.1'
 
-  s.add_dependency('dartsass-sprockets', '~> 3.2.0')
   s.add_dependency('ice_nine', '~> 0.11') # Deep Freeze Ruby Objects
   s.add_dependency('rails', '>= 7.2.0')
   s.add_dependency('request_store', '~> 1.3')
